@@ -1,0 +1,284 @@
+{
+  "name": "AI Voice agent",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "your-twilio-webhook-id",
+        "options": {}
+      },
+      "name": "Webhook: Receive Call",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "executeOnReceived": true,
+      "webhookId": "your-twilio-webhook-id",
+      "defaultQueryParameters": [],
+      "defaultBodyParameters": [],
+      "pinData": {
+        "out": []
+      },
+      "position": [
+        -1872,
+        416
+      ],
+      "notesInFlow": "📞 Starts the workflow when a call comes in from Twilio.",
+      "id": "8bc7126f-7c2f-4799-85ce-b28d3fcf8c68",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {},
+      "name": "TwiML: Language Select",
+      "type": "n8n-nodes-base.twiml",
+      "typeVersion": 1,
+      "position": [
+        -1680,
+        416
+      ],
+      "notesInFlow": "🗣️ Asks the caller for their preferred language.",
+      "id": "f794267b-7fa3-4e3d-9068-11b9b3073c75"
+    },
+    {
+      "parameters": {},
+      "name": "Switch: Language",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        -1472,
+        416
+      ],
+      "notesInFlow": "🔄 Routes the call based on the user's keypress.",
+      "id": "05a086ea-84b5-4631-b564-bfe255f31dee"
+    },
+    {
+      "parameters": {},
+      "name": "TwiML: Ask (English)",
+      "type": "n8n-nodes-base.twiml",
+      "typeVersion": 1,
+      "position": [
+        -1232,
+        336
+      ],
+      "notesInFlow": "🇬🇧 Prompts the user in English for their request.",
+      "id": "38c4b7ce-0175-4099-9e04-e91d0387ab89"
+    },
+    {
+      "parameters": {},
+      "name": "TwiML: Ask (Spanish)",
+      "type": "n8n-nodes-base.twiml",
+      "typeVersion": 1,
+      "position": [
+        -1232,
+        496
+      ],
+      "notesInFlow": "🇪🇸 Prompts the user in Spanish for their request.",
+      "id": "3ee6b1e4-460c-42a9-80bf-ba9c514d490c"
+    },
+    {
+      "parameters": {
+        "path": "your-speech-processing-webhook-id",
+        "options": {}
+      },
+      "name": "Webhook: Process Speech",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "executeOnReceived": true,
+      "webhookId": "your-speech-processing-webhook-id",
+      "defaultQueryParameters": [],
+      "defaultBodyParameters": [],
+      "pinData": {
+        "out": []
+      },
+      "position": [
+        -992,
+        416
+      ],
+      "notesInFlow": "👂 Receives spoken audio from the TwiML 'ask' nodes.",
+      "id": "325c8771-93ab-44a8-b13f-b2f34054205c",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "authentication": "headers",
+        "url": "https://api.deepgram.com/v1/listen",
+        "options": {}
+      },
+      "name": "HTTP Request: Deepgram Transcribe",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        416
+      ],
+      "notesInFlow": "🎤 Uses the Deepgram API to convert spoken audio into text.",
+      "id": "ab89ef0a-4397-4135-8a3f-068b62766f4c"
+    },
+    {
+      "parameters": {
+        "authentication": "headers",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "options": {}
+      },
+      "name": "HTTP Request: OpenAI (GPT-4o)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -512,
+        416
+      ],
+      "notesInFlow": "🧠 The AI 'brain' that processes the transcript and determines user intent.",
+      "id": "9d281ea3-eb33-4115-83f9-afa2d18f2543"
+    },
+    {
+      "parameters": {},
+      "name": "Switch: Intent Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        416
+      ],
+      "notesInFlow": "🧭 Routes the workflow based on the intent identified by the AI.",
+      "id": "fb436581-044e-47bb-9061-35e27f2cd9ba"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.RESERVATION_API_URL }}/create",
+        "options": {}
+      },
+      "name": "HTTP Request: Create Reservation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        48
+      ],
+      "notesInFlow": "📅 Calls your custom API to create a reservation.",
+      "id": "0c26fcdc-ec2c-4106-8d2e-04f21c5d852c"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.POS_API_URL }}/create-order",
+        "options": {}
+      },
+      "name": "HTTP Request: Create Order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        176
+      ],
+      "notesInFlow": "🍔 Calls your custom API to create an order.",
+      "id": "0881f9b5-3073-4ce9-8a9b-05160ae7c337"
+    },
+    {
+      "parameters": {
+        "authentication": "headers",
+        "url": "https://api.stripe.com/v1/payment_links",
+        "options": {}
+      },
+      "name": "HTTP Request: Stripe - Create Payment Link",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        416
+      ],
+      "notesInFlow": "💳 Creates a secure payment link using the Stripe API.",
+      "id": "a989f3ef-c280-458f-a23a-0eaf8aa65002"
+    },
+    {
+      "parameters": {
+        "authentication": "httpHeaderAuth",
+        "url": "https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_ACCOUNT_SID }}/Messages.json",
+        "options": {}
+      },
+      "name": "HTTP Request: Twilio Send SMS (Payment Link)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        208,
+        416
+      ],
+      "notesInFlow": "📱 Sends the secure payment link via SMS.",
+      "id": "a9cdf04a-e92d-4808-bd1c-3bc969527d07"
+    },
+    {
+      "parameters": {},
+      "name": "TwiML: Transfer Call",
+      "type": "n8n-nodes-base.twiml",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        528
+      ],
+      "notesInFlow": "🤝 Transfers the call to a human agent.",
+      "id": "d16bf027-5b92-49a9-88f8-4f5350dd9c56"
+    },
+    {
+      "parameters": {},
+      "name": "TwiML: End Call",
+      "type": "n8n-nodes-base.twiml",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        656
+      ],
+      "notesInFlow": "👋 Hangs up the call.",
+      "id": "894b191f-1a9b-4b46-a1b7-4c74e4309fdf"
+    },
+    {
+      "parameters": {
+        "url": "https://texttospeech.googleapis.com/v1/text:synthesize?key={{ $env.GOOGLE_TTS_API_KEY }}",
+        "options": {}
+      },
+      "name": "HTTP Request: Google TTS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        208,
+        288
+      ],
+      "notesInFlow": "🔊 Converts the AI's text response into spoken audio.",
+      "id": "e62b5e05-abe3-46a8-88b7-b93ca6fa1317"
+    },
+    {
+      "parameters": {
+        "authentication": "headers",
+        "url": "={{ $env.SUPABASE_URL }}/storage/v1/object/public/audios/{{ $json.CallSid }}/response_{{ Date.now() }}.wav",
+        "options": {}
+      },
+      "name": "HTTP Request: Supabase - Upload Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        448,
+        288
+      ],
+      "notesInFlow": "☁️ Stores the generated audio file in your Supabase storage.",
+      "id": "72c34c27-d8c1-44b2-bcc9-2fa7b011866a"
+    },
+    {
+      "parameters": {},
+      "name": "TwiML: Play Response & Continue",
+      "type": "n8n-nodes-base.twiml",
+      "typeVersion": 1,
+      "position": [
+        688,
+        288
+      ],
+      "notesInFlow": "➡️ Plays the AI's audio response and returns control to the webhook for the next turn.",
+      "id": "91fa7a4f-c78c-42ae-af93-254345410b80"
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e655f469-c902-4223-bf66-f6d65c58a4b2",
+  "meta": {
+    "instanceId": "0f8f60bfafec3723b8db0501154511d3a9647a23488d2f277f0d391d6b0317db"
+  },
+  "id": "PUmwNrVQllqHZeG1",
+  "tags": []
+}
