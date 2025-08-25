@@ -16,6 +16,8 @@
     },
     {
       "parameters": {
+        "resource": "call",
+        "operation": "respondWithTwiml",
         "response": {
           "verbs": [
             {
@@ -68,6 +70,8 @@
     },
     {
       "parameters": {
+        "resource": "call",
+        "operation": "respondWithTwiml",
         "response": {
           "verbs": [
             {
@@ -102,6 +106,8 @@
     },
     {
       "parameters": {
+        "resource": "call",
+        "operation": "respondWithTwiml",
         "response": {
           "verbs": [
             {
@@ -273,7 +279,8 @@
     },
     {
       "parameters": {
-        "accountSid": "={{ $env.TWILIO_ACCOUNT_SID }}",
+        "resource": "message",
+        "operation": "send",
         "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
         "to": "={{ $json.body.From }}",
         "body": "Here is your payment link: {{ $node['Stripe: Create Payment Link'].json.url }}"
@@ -292,6 +299,8 @@
     },
     {
       "parameters": {
+        "resource": "call",
+        "operation": "respondWithTwiml",
         "response": {
           "verbs": [
             {
@@ -321,6 +330,8 @@
     },
     {
       "parameters": {
+        "resource": "call",
+        "operation": "respondWithTwiml",
         "response": {
           "verbs": [
             {
@@ -391,6 +402,8 @@
     },
     {
       "parameters": {
+        "resource": "call",
+        "operation": "respondWithTwiml",
         "response": {
           "verbs": [
             {
