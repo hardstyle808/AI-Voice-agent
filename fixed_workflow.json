@@ -1,0 +1,431 @@
+{
+  "name": "AI Voice agent",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "your-twilio-webhook-id",
+        "options": {}
+      },
+      "name": "Webhook: Receive Call",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "executeOnReceived": true,
+      "webhookId": "your-twilio-webhook-id",
+      "position": [-1872, 416],
+      "id": "8bc7126f-7c2f-4799-85ce-b28d3fcf8c68"
+    },
+    {
+      "parameters": {
+        "response": {
+          "verbs": [
+            {
+              "verb": "gather",
+              "attributes": {
+                "input": "speech",
+                "speechTimeout": "auto",
+                "action": "={{ $node['Webhook: Process Speech'].webhookUrl }}",
+                "language": "en-US"
+              },
+              "children": [
+                {
+                  "verb": "say",
+                  "text": "Hello! Please select your language. Diga 'español' para español."
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "name": "Twilio: Language Select",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [-1680, 416],
+      "id": "f794267b-7fa3-4e3d-9068-11b9b3073c75",
+      "credentials": {
+        "twilioApi": {
+          "id": "n8n-twilio-account",
+          "name": "n8n-twilio-account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.SpeechResult }}",
+              "operation": "contains",
+              "value2": "español"
+            }
+          ]
+        }
+      },
+      "name": "Switch: Language",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [-1472, 416],
+      "id": "05a086ea-84b5-4631-b564-bfe255f31dee"
+    },
+    {
+      "parameters": {
+        "response": {
+          "verbs": [
+            {
+              "verb": "gather",
+              "attributes": {
+                "input": "speech",
+                "speechTimeout": "auto",
+                "action": "={{ $node['Webhook: Process Speech'].webhookUrl }}",
+                "language": "en-US"
+              },
+              "children": [
+                {
+                  "verb": "say",
+                  "text": "How can I help you today?"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "name": "Twilio: Ask (English)",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [-1232, 336],
+      "id": "38c4b7ce-0175-4099-9e04-e91d0387ab89",
+      "credentials": {
+        "twilioApi": {
+          "id": "n8n-twilio-account",
+          "name": "n8n-twilio-account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "response": {
+          "verbs": [
+            {
+              "verb": "gather",
+              "attributes": {
+                "input": "speech",
+                "speechTimeout": "auto",
+                "action": "={{ $node['Webhook: Process Speech'].webhookUrl }}",
+                "language": "es-ES"
+              },
+              "children": [
+                {
+                  "verb": "say",
+                  "text": "¿En qué puedo ayudarte hoy?"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "name": "Twilio: Ask (Spanish)",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [-1232, 496],
+      "id": "3ee6b1e4-460c-42a9-80bf-ba9c514d490c",
+      "credentials": {
+        "twilioApi": {
+          "id": "n8n-twilio-account",
+          "name": "n8n-twilio-account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "your-speech-processing-webhook-id",
+        "options": {}
+      },
+      "name": "Webhook: Process Speech",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "executeOnReceived": true,
+      "webhookId": "your-speech-processing-webhook-id",
+      "position": [-992, 416],
+      "id": "325c8771-93ab-44a8-b13f-b2f34054205c"
+    },
+    {
+      "parameters": {
+        "source": "url",
+        "url": "={{ $json.body.RecordingUrl }}",
+        "additionalOptions": {
+          "model": "nova-2-general"
+        }
+      },
+      "name": "Deepgram: Transcribe",
+      "type": "n8n-nodes-base.deepgram",
+      "typeVersion": 1,
+      "position": [-752, 416],
+      "id": "ab89ef0a-4397-4135-8a3f-068b62766f4c",
+      "credentials": {
+        "deepgramApi": {
+          "id": "n8n-deepgram-api",
+          "name": "n8n-deepgram-api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "message": [
+            {
+              "role": "user",
+              "content": "={{ $node['Deepgram: Transcribe'].json.results.channels[0].alternatives[0].transcript }}"
+            }
+          ]
+        }
+      },
+      "name": "OpenAI: GPT-4o",
+      "type": "n8n-nodes-base.openAiChat",
+      "typeVersion": 1,
+      "position": [-512, 416],
+      "id": "9d281ea3-eb33-4115-83f9-afa2d18f2543",
+      "credentials": {
+        "openAiApi": {
+          "id": "n8n-openai-api",
+          "name": "n8n-openai-api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $node['OpenAI: GPT-4o'].json.choices[0].message.content }}",
+              "operation": "contains",
+              "value2": "reservation"
+            },
+            {
+              "value1": "={{ $node['OpenAI: GPT-4o'].json.choices[0].message.content }}",
+              "operation": "contains",
+              "value2": "order"
+            },
+            {
+              "value1": "={{ $node['OpenAI: GPT-4o'].json.choices[0].message.content }}",
+              "operation": "contains",
+              "value2": "payment"
+            },
+            {
+              "value1": "={{ $node['OpenAI: GPT-4o'].json.choices[0].message.content }}",
+              "operation": "contains",
+              "value2": "transfer"
+            }
+          ]
+        }
+      },
+      "name": "Switch: Intent Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [-272, 416],
+      "id": "fb436581-044e-47bb-9061-35e27f2cd9ba"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.RESERVATION_API_URL }}/create",
+        "options": {}
+      },
+      "name": "HTTP Request: Create Reservation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [-32, 48],
+      "id": "0c26fcdc-ec2c-4106-8d2e-04f21c5d852c"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.POS_API_URL }}/create-order",
+        "options": {}
+      },
+      "name": "HTTP Request: Create Order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [-32, 176],
+      "id": "0881f9b5-3073-4ce9-8a9b-05160ae7c337"
+    },
+    {
+      "parameters": {
+        "resource": "paymentLink",
+        "operation": "create",
+        "lineItems": {
+          "lineItem": [
+            {
+              "price": "price_12345",
+              "quantity": 1
+            }
+          ]
+        }
+      },
+      "name": "Stripe: Create Payment Link",
+      "type": "n8n-nodes-base.stripe",
+      "typeVersion": 1,
+      "position": [-32, 416],
+      "id": "a989f3ef-c280-458f-a23a-0eaf8aa65002",
+      "credentials": {
+        "stripeApi": {
+          "id": "n8n-stripe-api",
+          "name": "n8n-stripe-api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "accountSid": "={{ $env.TWILIO_ACCOUNT_SID }}",
+        "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
+        "to": "={{ $json.body.From }}",
+        "body": "Here is your payment link: {{ $node['Stripe: Create Payment Link'].json.url }}"
+      },
+      "name": "Twilio: Send SMS (Payment Link)",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [208, 416],
+      "id": "a9cdf04a-e92d-4808-bd1c-3bc969527d07",
+      "credentials": {
+        "twilioApi": {
+          "id": "n8n-twilio-account",
+          "name": "n8n-twilio-account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "response": {
+          "verbs": [
+            {
+              "verb": "dial",
+              "attributes": {},
+              "children": [
+                {
+                  "verb": "number",
+                  "text": "={{ $env.FORWARDING_PHONE_NUMBER }}"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "name": "Twilio: Transfer Call",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [-32, 528],
+      "id": "d16bf027-5b92-49a9-88f8-4f5350dd9c56",
+      "credentials": {
+        "twilioApi": {
+          "id": "n8n-twilio-account",
+          "name": "n8n-twilio-account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "response": {
+          "verbs": [
+            {
+              "verb": "hangup",
+              "attributes": {}
+            }
+          ]
+        }
+      },
+      "name": "Twilio: End Call",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [-32, 656],
+      "id": "894b191f-1a9b-4b46-a1b7-4c74e4309fdf",
+      "credentials": {
+        "twilioApi": {
+          "id": "n8n-twilio-account",
+          "name": "n8n-twilio-account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "input": "={{ $node['OpenAI: GPT-4o'].json.choices[0].message.content }}",
+        "voice": {
+          "languageCode": "en-US",
+          "ssmlGender": "NEUTRAL"
+        },
+        "audio": {
+          "audioEncoding": "MP3"
+        }
+      },
+      "name": "Google TTS: Synthesize",
+      "type": "n8n-nodes-base.googleCloudTts",
+      "typeVersion": 1,
+      "position": [208, 288],
+      "id": "e62b5e05-abe3-46a8-88b7-b93ca6fa1317",
+      "credentials": {
+        "googleApi": {
+          "id": "n8n-google-api",
+          "name": "n8n-google-api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/storage/v1/object/public/audios/{{ $json.body.CallSid }}/response_{{ Date.now() }}.mp3",
+        "sendBody": true,
+        "binaryData": true,
+        "options": {
+          "httpMethod": "POST",
+          "contentType": "audio/mpeg",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ $env.SUPABASE_SERVICE_KEY }}"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Supabase: Upload Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [448, 288],
+      "id": "72c34c27-d8c1-44b2-bcc9-2fa7b011866a"
+    },
+    {
+      "parameters": {
+        "response": {
+          "verbs": [
+            {
+              "verb": "play",
+              "attributes": {},
+              "children": [],
+              "url": "={{ $node['Supabase: Upload Audio'].json.url }}"
+            },
+            {
+              "verb": "redirect",
+              "attributes": {},
+              "url": "={{ $node['Webhook: Process Speech'].webhookUrl }}"
+            }
+          ]
+        }
+      },
+      "name": "Twilio: Play & Continue",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [688, 288],
+      "id": "91fa7a4f-c78c-42ae-af93-254345410b80",
+      "credentials": {
+        "twilioApi": {
+          "id": "n8n-twilio-account",
+          "name": "n8n-twilio-account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "PUmwNrVQllqHZeG1",
+  "tags": []
+}
