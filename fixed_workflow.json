@@ -1,5 +1,5 @@
 {
-  "name": "AI Voice agent",
+  "name": "AI Voice agent (Fixed)",
   "nodes": [
     {
       "parameters": {
@@ -16,39 +16,19 @@
     },
     {
       "parameters": {
-        "resource": "call",
-        "operation": "respondWithTwiml",
-        "response": {
-          "verbs": [
-            {
-              "verb": "gather",
-              "attributes": {
-                "input": "speech",
-                "speechTimeout": "auto",
-                "action": "={{ $node['Webhook: Process Speech'].webhookUrl }}",
-                "language": "en-US"
-              },
-              "children": [
-                {
-                  "verb": "say",
-                  "text": "Hello! Please select your language. Diga 'español' para español."
-                }
-              ]
-            }
-          ]
-        }
+        "options": {
+          "responseHeaders": {
+            "Content-Type": "application/xml"
+          }
+        },
+        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response><Gather input=\"speech\" speechTimeout=\"auto\" action=\"{{$node['Webhook: Process Speech'].webhookUrl}}\" language=\"en-US\"><Say>Hello! Please select your language. Diga 'español' para español.</Say></Gather></Response>",
+        "responseCode": 200
       },
-      "name": "Twilio: Language Select",
-      "type": "n8n-nodes-base.twilio",
+      "name": "Respond: Language Select",
+      "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [-1680, 416],
-      "id": "f794267b-7fa3-4e3d-9068-11b9b3073c75",
-      "credentials": {
-        "twilioApi": {
-          "id": "n8n-twilio-account",
-          "name": "n8n-twilio-account"
-        }
-      }
+      "id": "f794267b-7fa3-4e3d-9068-11b9b3073c75"
     },
     {
       "parameters": {
@@ -70,75 +50,35 @@
     },
     {
       "parameters": {
-        "resource": "call",
-        "operation": "respondWithTwiml",
-        "response": {
-          "verbs": [
-            {
-              "verb": "gather",
-              "attributes": {
-                "input": "speech",
-                "speechTimeout": "auto",
-                "action": "={{ $node['Webhook: Process Speech'].webhookUrl }}",
-                "language": "en-US"
-              },
-              "children": [
-                {
-                  "verb": "say",
-                  "text": "How can I help you today?"
-                }
-              ]
-            }
-          ]
-        }
+        "options": {
+          "responseHeaders": {
+            "Content-Type": "application/xml"
+          }
+        },
+        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response><Gather input=\"speech\" speechTimeout=\"auto\" action=\"{{$node['Webhook: Process Speech'].webhookUrl}}\" language=\"en-US\"><Say>How can I help you today?</Say></Gather></Response>",
+        "responseCode": 200
       },
-      "name": "Twilio: Ask (English)",
-      "type": "n8n-nodes-base.twilio",
+      "name": "Respond: Ask (English)",
+      "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [-1232, 336],
-      "id": "38c4b7ce-0175-4099-9e04-e91d0387ab89",
-      "credentials": {
-        "twilioApi": {
-          "id": "n8n-twilio-account",
-          "name": "n8n-twilio-account"
-        }
-      }
+      "id": "38c4b7ce-0175-4099-9e04-e91d0387ab89"
     },
     {
       "parameters": {
-        "resource": "call",
-        "operation": "respondWithTwiml",
-        "response": {
-          "verbs": [
-            {
-              "verb": "gather",
-              "attributes": {
-                "input": "speech",
-                "speechTimeout": "auto",
-                "action": "={{ $node['Webhook: Process Speech'].webhookUrl }}",
-                "language": "es-ES"
-              },
-              "children": [
-                {
-                  "verb": "say",
-                  "text": "¿En qué puedo ayudarte hoy?"
-                }
-              ]
-            }
-          ]
-        }
+        "options": {
+          "responseHeaders": {
+            "Content-Type": "application/xml"
+          }
+        },
+        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response><Gather input=\"speech\" speechTimeout=\"auto\" action=\"{{$node['Webhook: Process Speech'].webhookUrl}}\" language=\"es-ES\"><Say>¿En qué puedo ayudarte hoy?</Say></Gather></Response>",
+        "responseCode": 200
       },
-      "name": "Twilio: Ask (Spanish)",
-      "type": "n8n-nodes-base.twilio",
+      "name": "Respond: Ask (Spanish)",
+      "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [-1232, 496],
-      "id": "3ee6b1e4-460c-42a9-80bf-ba9c514d490c",
-      "credentials": {
-        "twilioApi": {
-          "id": "n8n-twilio-account",
-          "name": "n8n-twilio-account"
-        }
-      }
+      "id": "3ee6b1e4-460c-42a9-80bf-ba9c514d490c"
     },
     {
       "parameters": {
@@ -155,38 +95,38 @@
     },
     {
       "parameters": {
-        "source": "url",
-        "url": "={{ $json.body.RecordingUrl }}",
-        "additionalOptions": {
-          "model": "nova-2-general"
-        }
+        "url": "https://api.deepgram.com/v1/listen?model=nova-2-general&smart_format=true",
+        "authentication": "predefinedCredential",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendJson": true,
+        "requestMethod": "POST",
+        "bodyParametersJson": "{\"url\": \"{{$json.body.RecordingUrl}}\"}",
+        "options": {}
       },
-      "name": "Deepgram: Transcribe",
-      "type": "n8n-nodes-base.deepgram",
+      "name": "HTTP Request: Deepgram",
+      "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [-752, 416],
       "id": "ab89ef0a-4397-4135-8a3f-068b62766f4c",
       "credentials": {
-        "deepgramApi": {
-          "id": "n8n-deepgram-api",
-          "name": "n8n-deepgram-api"
+        "httpHeaderAuth": {
+          "id": "deepgram-header-auth",
+          "name": "Deepgram Header Auth"
         }
       }
     },
     {
       "parameters": {
-        "model": "gpt-4o",
-        "messages": {
-          "message": [
-            {
-              "role": "user",
-              "content": "={{ $node['Deepgram: Transcribe'].json.results.channels[0].alternatives[0].transcript }}"
-            }
-          ]
-        }
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredential",
+        "nodeCredentialType": "openAiApi",
+        "sendJson": true,
+        "requestMethod": "POST",
+        "bodyParametersJson": "{\"model\": \"gpt-4o\", \"messages\": [{\"role\": \"user\", \"content\": \"{{$json.results.channels[0].alternatives[0].transcript}}\"}]}",
+        "options": {}
       },
-      "name": "OpenAI: GPT-4o",
-      "type": "n8n-nodes-base.openAiChat",
+      "name": "HTTP Request: OpenAI",
+      "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [-512, 416],
       "id": "9d281ea3-eb33-4115-83f9-afa2d18f2543",
@@ -202,22 +142,22 @@
         "conditions": {
           "string": [
             {
-              "value1": "={{ $node['OpenAI: GPT-4o'].json.choices[0].message.content }}",
+              "value1": "={{ $json.choices[0].message.content }}",
               "operation": "contains",
               "value2": "reservation"
             },
             {
-              "value1": "={{ $node['OpenAI: GPT-4o'].json.choices[0].message.content }}",
+              "value1": "={{ $json.choices[0].message.content }}",
               "operation": "contains",
               "value2": "order"
             },
             {
-              "value1": "={{ $node['OpenAI: GPT-4o'].json.choices[0].message.content }}",
+              "value1": "={{ $json.choices[0].message.content }}",
               "operation": "contains",
               "value2": "payment"
             },
             {
-              "value1": "={{ $node['OpenAI: GPT-4o'].json.choices[0].message.content }}",
+              "value1": "={{ $json.choices[0].message.content }}",
               "operation": "contains",
               "value2": "transfer"
             }
@@ -285,7 +225,7 @@
         "to": "={{ $json.body.From }}",
         "body": "Here is your payment link: {{ $node['Stripe: Create Payment Link'].json.url }}"
       },
-      "name": "Twilio: Send SMS (Payment Link)",
+      "name": "Twilio: Send SMS",
       "type": "n8n-nodes-base.twilio",
       "typeVersion": 1,
       "position": [208, 416],
@@ -299,63 +239,39 @@
     },
     {
       "parameters": {
-        "resource": "call",
-        "operation": "respondWithTwiml",
-        "response": {
-          "verbs": [
-            {
-              "verb": "dial",
-              "attributes": {},
-              "children": [
-                {
-                  "verb": "number",
-                  "text": "={{ $env.FORWARDING_PHONE_NUMBER }}"
-                }
-              ]
-            }
-          ]
-        }
+        "options": {
+          "responseHeaders": {
+            "Content-Type": "application/xml"
+          }
+        },
+        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response><Dial>{{$env.FORWARDING_PHONE_NUMBER}}</Dial></Response>",
+        "responseCode": 200
       },
-      "name": "Twilio: Transfer Call",
-      "type": "n8n-nodes-base.twilio",
+      "name": "Respond: Transfer Call",
+      "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [-32, 528],
-      "id": "d16bf027-5b92-49a9-88f8-4f5350dd9c56",
-      "credentials": {
-        "twilioApi": {
-          "id": "n8n-twilio-account",
-          "name": "n8n-twilio-account"
-        }
-      }
+      "id": "d16bf027-5b92-49a9-88f8-4f5350dd9c56"
     },
     {
       "parameters": {
-        "resource": "call",
-        "operation": "respondWithTwiml",
-        "response": {
-          "verbs": [
-            {
-              "verb": "hangup",
-              "attributes": {}
-            }
-          ]
-        }
+        "options": {
+          "responseHeaders": {
+            "Content-Type": "application/xml"
+          }
+        },
+        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response><Hangup/></Response>",
+        "responseCode": 200
       },
-      "name": "Twilio: End Call",
-      "type": "n8n-nodes-base.twilio",
+      "name": "Respond: End Call",
+      "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [-32, 656],
-      "id": "894b191f-1a9b-4b46-a1b7-4c74e4309fdf",
-      "credentials": {
-        "twilioApi": {
-          "id": "n8n-twilio-account",
-          "name": "n8n-twilio-account"
-        }
-      }
+      "id": "894b191f-1a9b-4b46-a1b7-4c74e4309fdf"
     },
     {
       "parameters": {
-        "input": "={{ $node['OpenAI: GPT-4o'].json.choices[0].message.content }}",
+        "input": "={{ $node['HTTP Request: OpenAI'].json.choices[0].message.content }}",
         "voice": {
           "languageCode": "en-US",
           "ssmlGender": "NEUTRAL"
@@ -402,35 +318,19 @@
     },
     {
       "parameters": {
-        "resource": "call",
-        "operation": "respondWithTwiml",
-        "response": {
-          "verbs": [
-            {
-              "verb": "play",
-              "attributes": {},
-              "children": [],
-              "url": "={{ $node['Supabase: Upload Audio'].json.url }}"
-            },
-            {
-              "verb": "redirect",
-              "attributes": {},
-              "url": "={{ $node['Webhook: Process Speech'].webhookUrl }}"
-            }
-          ]
-        }
+        "options": {
+          "responseHeaders": {
+            "Content-Type": "application/xml"
+          }
+        },
+        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response><Play>{{$node['Supabase: Upload Audio'].json.url}}</Play><Redirect>{{$node['Webhook: Process Speech'].webhookUrl}}</Redirect></Response>",
+        "responseCode": 200
       },
-      "name": "Twilio: Play & Continue",
-      "type": "n8n-nodes-base.twilio",
+      "name": "Respond: Play & Continue",
+      "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [688, 288],
-      "id": "91fa7a4f-c78c-42ae-af93-254345410b80",
-      "credentials": {
-        "twilioApi": {
-          "id": "n8n-twilio-account",
-          "name": "n8n-twilio-account"
-        }
-      }
+      "id": "91fa7a4f-c78c-42ae-af93-254345410b80"
     }
   ],
   "pinData": {},
